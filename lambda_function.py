@@ -32,14 +32,13 @@ def fetch_data(conn, query):
 
     return result
     
-def insert_data(conn, query):
+def query_data(conn, query):
     print ("Now executing: %s" % (query))
     cursor = conn.cursor()
     cursor.execute(query)
+    count = cursor.fetchall()
     conn.commit()
-    count = cursor.rowcount
     return count
-
 
 def lambda_handler(event, context):
     connection = make_conn()
@@ -50,8 +49,8 @@ def lambda_handler(event, context):
         }
     
     queryData = fetch_data(connection, "SELECT * FROM \"Employees\" WHERE first_name = 'George'")
-    insertedNum = insert_data(connection, "INSERT INTO \"Employees\"(first_name, last_name, role) VALUES ('Test', 'User', 'Test');")
-    
+    insertedNum = query_data(connection, "INSERT INTO \"Employees\" (first_name, last_name, role) VALUES ('Test', 'User', 'Test') RETURNING id;")
+    modifyedRow = query_data(connection, "UPDATE \"Employees\" SET role = 'Python Star' WHERE first_name = 'Test' RETURNING id;")
     return {
         'statusCode': 200,
         'body': json.dumps("Success")
